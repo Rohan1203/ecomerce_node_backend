@@ -1,6 +1,6 @@
 const jwt = require('express-jwt');
 const { secret } = require('config.json');
-const db = require('_helpers/db');
+const db = require('_helpers/user.db');
 
 module.exports = authorize;
 
@@ -12,8 +12,9 @@ function authorize() {
         // attach full user record to request object
         async (req, res, next) => {
             // get user with id from token 'sub' (subject) property
-            const user = await db.User.findByPk(req.user.sub);
-
+            const user = await db.User.findByPk(req.user.sub, req.user.type);
+            // console.log(req.user.role);
+            
             // check user still exists
             if (!user)
                 return res.status(401).json({ message: 'Unauthorized' });
