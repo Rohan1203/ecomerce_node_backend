@@ -3,14 +3,17 @@ const router = express.Router();
 const Joi = require('joi');
 const validateRequest = require('_middleware/validate-request');
 const authorize = require('_middleware/authorize')
-const userService = require('./api.service');
+const service = require('./api.service');
 
 // routes
-router.post('/auth/register', registerSchema, register);
-router.post('/auth/login', authenticateSchema, authenticate);
+router.post('/auth/register', registerUserSchema, register);
+router.post('/auth/login', authenticateUserSchema, authenticate);
 router.get('/buyer/list-of-sellers', authorize(), getAllSeller)
-router.get('/buyer/create-order', getId);
-// router.get('/', authorize(), getAll);
+router.get('/buyer/seller-catalog/:seller_id', authorize(), getCatalog);
+router.post('/buyer/create-order/:seller_id', authorize(), createOrder);
+router.post('/seller/create-catalog', authorize(), createCatalog);
+router.get('/seller/orders', authorize(), getOrder);
+router.get('/', getAll);
 // router.get('/current', authorize(), getCurrent);
 // router.get('/:id', authorize(), getById);
 // router.put('/:id', authorize(), updateSchema, update);
@@ -18,7 +21,7 @@ router.get('/buyer/create-order', getId);
 
 module.exports = router;
 
-function authenticateSchema(req, res, next) {
+function authenticateUserSchema(req, res, next) {
     const schema = Joi.object({
         username: Joi.string().required(),
         password: Joi.string().required()
@@ -27,12 +30,12 @@ function authenticateSchema(req, res, next) {
 }
 
 function authenticate(req, res, next) {
-    userService.authenticate(req.body)
+    service.authenticate(req.body)
         .then(user => res.json(user))
         .catch(next);
 }
 
-function registerSchema(req, res, next) {
+function registerUserSchema(req, res, next) {
     const schema = Joi.object({
         firstName: Joi.string().required(),
         lastName: Joi.string().required(),
@@ -44,37 +47,65 @@ function registerSchema(req, res, next) {
 }
 
 function register(req, res, next) {
-    userService.create(req.body)
+    service.create(req.body)
         .then(() => res.json({ message: 'Registration successful' }))
         .catch(next);
 }
 
 function getAllSeller(req, res, next){
     if (req.user.type === 'buyer'){
-        userService.getAllSeller()
+        service.getAllSeller()
         .then(sellers => res.json(sellers))
         .catch(next);
     } else {
-        return res.json({ message:"You're not authorized" })
+        return res.json({ message:"You're not authorized" });
     }
 }
 
-function getId(req, res, next){
-    userService.get(req.body)
-    .then(() => res.json({ message: 'Catalog created successfully' }))
+function getCatalog(req, res, next) {
+    service.getCatalog(req.params.seller_id)
+    .then(catalogs => res.json(catalogs))
     .catch(next)
 }
 
-// function getAll(req, res, next) {
-//     // console.log(authorize.user);
-//     // if (authorize.User.dataValues.type === 'buyer'){
-//         userService.getAll()
-//             .then(users => res.json(users))
-//             .catch(next);
-//     // } else {
-//     //     console.log("You're not authorized");
-//     // }
-// }
+function createOrder(req, res, next){
+    return res.json({ message:req.params.seller_id });
+}
+
+function getOrder(req, res, next) {
+    if (req.user.type === 'seller'){
+        service.getOrder(req.user.username)
+        .then(orders => res.json(orders))
+        .catch(next);
+    } else {
+        return res.json({ message:"You're not authorized" });
+    }
+}
+
+function createCatalog(req, res, next) {
+    if (req.user.type === 'seller'){
+        service.createCatalog(req.user.id);
+
+        let params = [];
+        for (let i = 0; i < req.body.length; i++) {
+            jsonRequest = {"catalogId":req.body[i].catalogId, "name": req.body[i].name, "price":req.body[i].price}
+            // params.push([req.user.id, req.body[i].name, req.body[i].price])
+            console.log(jsonRequest);
+            service.createProduct(jsonRequest)
+            .then(() => res.json({ message: 'Catalog created successfully' }))
+            .catch(next);
+        }
+        
+    } else { 
+        return res.json({ message:"You're not authorized" });
+    }
+}
+
+function getAll(req, res, next) {
+        service.getAll()
+            .then(users => res.json(users))
+            .catch(next);
+}
 
 // async function getCurrent(req, res, next) {
 //     res.json(req.user);

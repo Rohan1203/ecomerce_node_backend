@@ -1,14 +1,15 @@
 const config = require('config.json');
 const mysql = require('mysql2/promise');
 const { Sequelize } = require('sequelize');
+const connection = require('./db.connect');
 
 module.exports = db = {};
 
 initialize();
 
 async function initialize() {
-    const { host, port, user, password } = config.database;
-    const connection = await mysql.createConnection({ host, port, user, password });
+    const { host, port, user, password, database } = config.database;
+    // const connection = await mysql.createConnection({ host, port, user, password });
 
     // connect to db
     const sequelize = new Sequelize(database, user, password, { dialect: 'mysql' });
