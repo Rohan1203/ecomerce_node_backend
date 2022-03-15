@@ -84,13 +84,15 @@ function getOrder(req, res, next) {
 
 function createCatalog(req, res, next) {
     if (req.user.type === 'seller'){
-        service.createCatalog(req.user.id);
+        service.createCatalog(req.user.id)
+        .then(catalogs => res.json(catalogs))
+        .catch(next)
 
         let params = [];
         for (let i = 0; i < req.body.length; i++) {
             jsonRequest = {"catalogId":req.body[i].catalogId, "name": req.body[i].name, "price":req.body[i].price}
             // params.push([req.user.id, req.body[i].name, req.body[i].price])
-            console.log(jsonRequest);
+            // console.log(jsonRequest);
             service.createProduct(jsonRequest)
             .then(() => res.json({ message: 'Catalog created successfully' }))
             .catch(next);
