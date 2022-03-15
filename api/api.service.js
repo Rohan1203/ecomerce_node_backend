@@ -15,7 +15,6 @@ module.exports = {
     getOrder,
     getCatalog,
     createCatalog,
-    createProduct,
     createOrder,
     getAll
 };
@@ -51,7 +50,12 @@ async function create(params) {
 }
 
 async function getCatalog(seller_id) {
-    return await catalogDb.Catalog.findAll({ where: { sellerId: seller_id } });
+    const catalog =  await catalogDb.Catalog.findOne({ where: { sellerId: seller_id }, attributes: ['id'] });
+    if (catalog){
+        return await productDb.Product.findAll({where: {catalogId: catalog.id}})
+    } else {
+        throw "Catalog doesn't exists"
+    }
 }
 
 async function getOrder(username) {
@@ -65,22 +69,31 @@ async function getOrder(username) {
     // });
 }
 
-async function createCatalog(seller_id) {
+async function createCatalog(seller_id, list_body) {
     const user = await catalogDb.Catalog.findOne({where: { sellerId: seller_id } });
-    if (user) throw 'Catalog Exists';
+    if (user) throw 'Catalog exists';
     else {
         await catalogDb.Catalog.create({"sellerId":seller_id});
-        return await catalogDb.Catalog.findOne({ where: { sellerId: seller_id }, attributes: ['id'] });
+        const catalog =  await catalogDb.Catalog.findOne({ where: { sellerId: seller_id }, attributes: ['id'] });
+        for (let i = 0; i < list_body.length; i++) {
+            jsonRequest = {"catalogId":catalog.id, "name": list_body[i].name, "price":list_body[i].price}
+            await productDb.Product.create(jsonRequest);
+        }
     }
 }
 
-async function createProduct(params) {
-        return await productDb.Product.create(params);
-        // connection.query('select * from test');    
-}
 
-async function createOrder(params){
-    orderDb.Order()
+async function createOrder(seller_id, list_body){
+    const user = await catalogDb.Catalog.findOne({where: { sellerId: seller_id } });
+    if (user){
+        const catalog =  await catalogDb.Catalog.findOne({ where: { sellerId: seller_id }, attributes: ['id'] });
+        for (let i = 0; i < list_body.length; i++) {
+            jsonRequest = {"productId":list_body[i].order, "catalogId": catalog.id, "sellerId":seller_id}
+            await orderDb.Order.create(jsonRequest);
+        }
+    } else {
+        throw "Catalog doesn't exists";
+    }
 }
 
 async function getAll() {

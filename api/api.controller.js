@@ -69,7 +69,9 @@ function getCatalog(req, res, next) {
 }
 
 function createOrder(req, res, next){
-    return res.json({ message:req.params.seller_id });
+    service.createOrder(req.params.seller_id, req.body)
+    .then(() => res.json({ message: 'Oreder created successfully' }))
+    .catch(next)
 }
 
 function getOrder(req, res, next) {
@@ -84,20 +86,9 @@ function getOrder(req, res, next) {
 
 function createCatalog(req, res, next) {
     if (req.user.type === 'seller'){
-        service.createCatalog(req.user.id)
-        .then(catalogs => res.json(catalogs))
+        service.createCatalog(req.user.id, req.body)
+        .then(() => res.json({ message: 'Catalog created successfully' }))
         .catch(next)
-
-        let params = [];
-        for (let i = 0; i < req.body.length; i++) {
-            jsonRequest = {"catalogId":req.body[i].catalogId, "name": req.body[i].name, "price":req.body[i].price}
-            // params.push([req.user.id, req.body[i].name, req.body[i].price])
-            // console.log(jsonRequest);
-            service.createProduct(jsonRequest)
-            .then(() => res.json({ message: 'Catalog created successfully' }))
-            .catch(next);
-        }
-        
     } else { 
         return res.json({ message:"You're not authorized" });
     }
