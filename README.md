@@ -21,3 +21,7 @@ The APIs exposed are:
 
 Test in the postman by appending the lost to the prefix of the endpoints
 eg. http://localhost:4000//api/auth/register
+
+
+
+Note: In getOrder api; only returning the catalog_id not the product details. If needed we can retrieve the product details by reffering catalog_id
