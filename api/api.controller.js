@@ -76,7 +76,7 @@ function createOrder(req, res, next){
 
 function getOrder(req, res, next) {
     if (req.user.type === 'seller'){
-        service.getOrder(req.user.username)
+        service.getOrder(req.user.id)
         .then(orders => res.json(orders))
         .catch(next);
     } else {

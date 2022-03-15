@@ -58,8 +58,8 @@ async function getCatalog(seller_id) {
     }
 }
 
-async function getOrder(username) {
-    return await orderDb.Order.findAll({ where: { sellerId: username } });
+async function getOrder(seller_id) {
+    return await orderDb.Order.findAll({ where: { sellerId: seller_id } });
     // let sql = `SELECT * FROM users`;
     // connection.query(sql, (error, results, fields) => {
     //     if (error) {
